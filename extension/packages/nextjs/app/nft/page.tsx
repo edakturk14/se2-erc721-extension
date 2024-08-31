@@ -1,18 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { NextPage } from "next";
+import { useAccount } from "wagmi";
 import { Address, AddressInput } from "~~/components/scaffold-eth";
-import { useDeployedContractInfo, useScaffoldWriteContract, useTransactor } from "~~/hooks/scaffold-eth";
+import {
+  useDeployedContractInfo,
+  useScaffoldReadContract,
+  useScaffoldWriteContract,
+  useTransactor,
+} from "~~/hooks/scaffold-eth";
 
 const Home: NextPage = () => {
   const { data: nftContractData } = useDeployedContractInfo("NFTContract");
+  const { address: connectedAddress } = useAccount();
   const [recipientAddress, setRecipientAddress] = useState<string>("");
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [nftTokens, setNftTokens] = useState<string[]>([]);
 
   const { writeContractAsync: writeNFTContractAsync, isPending } = useScaffoldWriteContract("NFTContract");
-  const writeTx = useTransactor();
+
+  // Fetching NFTs owned by the connected address using the tokensOfOwner function
+  const { data: tokenIds } = useScaffoldReadContract({
+    contractName: "NFTContract",
+    functionName: "tokensOfOwner",
+    args: [connectedAddress],
+  });
+
+  useEffect(() => {
+    if (tokenIds && tokenIds.length > 0) {
+      setNftTokens(tokenIds.map((id: bigint) => id.toString()));
+    } else {
+      setNftTokens([]); // Clear the tokens if no NFTs are found
+    }
+  }, [tokenIds]);
 
   const handleMintNFT = async () => {
     if (isPending) return; // Prevent double minting by checking the pending state
@@ -78,9 +100,46 @@ const Home: NextPage = () => {
           )}
           {errorMessage && <p className="text-red-500">Error: {errorMessage}</p>}
         </div>
+
+        {/* Display NFTs */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-4">Your NFTs</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {nftTokens.map(tokenId => (
+              <div key={tokenId} className="border rounded p-4 shadow">
+                <p className="font-semibold">Token ID: {tokenId}</p>
+                <NFTDisplay tokenId={tokenId} />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 export default Home;
+
+const NFTDisplay: React.FC<{ tokenId: string }> = ({ tokenId }) => {
+  const { data: tokenURI } = useScaffoldReadContract({
+    contractName: "NFTContract",
+    functionName: "tokenURI",
+    args: [BigInt(tokenId)],
+  });
+
+  let svgContent: string | null = null;
+
+  if (tokenURI) {
+    try {
+      // Parse the JSON string directly
+      const jsonObject = JSON.parse(tokenURI);
+
+      // Directly assign the SVG content since there's no prefix
+      svgContent = jsonObject.image;
+    } catch (error) {
+      console.error("Failed to parse or extract SVG:", error);
+    }
+  }
+
+  return svgContent ? <div dangerouslySetInnerHTML={{ __html: svgContent }} /> : <p>Loading...</p>;
+};

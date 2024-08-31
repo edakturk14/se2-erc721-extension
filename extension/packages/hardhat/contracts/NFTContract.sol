@@ -22,6 +22,20 @@ contract NFTContract is ERC721Enumerable {
     }
 
     /**
+     * @dev Returns an array of token IDs owned by the given address
+     * @param owner The address to query
+     * @return uint256[] List of token IDs owned by the address
+     */
+    function tokensOfOwner(address owner) external view returns (uint256[] memory) {
+        uint256 tokenCount = balanceOf(owner);
+        uint256[] memory tokenIds = new uint256[](tokenCount);
+        for (uint256 i = 0; i < tokenCount; i++) {
+            tokenIds[i] = tokenOfOwnerByIndex(owner, i);
+        }
+        return tokenIds;
+    }
+
+    /**
      * @dev Returns the token URI for a given token ID
      * @param tokenId The token ID
      * @return The token URI
@@ -30,12 +44,12 @@ contract NFTContract is ERC721Enumerable {
         string memory svg = generateSVG();
         string memory json = string(
             abi.encodePacked(
-                '{"name": "Smiley face NFT", "description": "A simple smiley face SVG NFT", "image": "data:image/svg+xml;utf8,',
+                '{"name": "Smiley face NFT", "description": "A simple smiley face SVG NFT", "image": "',
                 svg,
                 '"}'
             )
         );
-        return string(abi.encodePacked("data:application/json;utf8,", json));
+        return json;  // Return the plain JSON string instead of a data URI
     }
 
     /**
@@ -44,12 +58,13 @@ contract NFTContract is ERC721Enumerable {
      */
     function generateSVG() internal pure returns (string memory) {
         return 
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
-            '<circle cx="50" cy="50" r="50" fill="gray" />'
-            '<circle cx="35" cy="35" r="5" fill="black" />'
-            '<circle cx="65" cy="35" r="5" fill="black" />'
-            '<path d="M 35 65 Q 50 80 65 65" stroke="black" stroke-width="5" fill="none" />'
-            '<path d="M 40 50 Q 50 60 60 50" stroke="black" stroke-width="2" fill="none" />'
-            '</svg>';
+            string(abi.encodePacked(
+                '<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 100 100\\">',
+                '<circle cx=\\"50\\" cy=\\"50\\" r=\\"50\\" fill=\\"gray\\" />',
+                '<circle cx=\\"35\\" cy=\\"35\\" r=\\"5\\" fill=\\"black\\" />',
+                '<circle cx=\\"65\\" cy=\\"35\\" r=\\"5\\" fill=\\"black\\" />',
+                '<path d=\\"M 35 65 Q 50 80 65 65\\" stroke=\\"black\\" stroke-width=\\"5\\" fill=\\"none\\" />',
+                '</svg>'
+            ));
     }
 }
