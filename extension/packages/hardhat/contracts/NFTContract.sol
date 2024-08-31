@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 contract NFTContract is ERC721Enumerable {
     uint256 public nextTokenId;
 
-    constructor() ERC721("edaNFT", "ENFT") {}
+    constructor() ERC721("smileNFT", "SNFT") {}
 
     /**
      * @dev Mints a new token to the specified address
@@ -30,7 +30,7 @@ contract NFTContract is ERC721Enumerable {
         string memory svg = generateSVG();
         string memory json = string(
             abi.encodePacked(
-                '{"name": "Cat NFT", "description": "A simple cat SVG NFT", "image": "data:image/svg+xml;utf8,',
+                '{"name": "Smiley face NFT", "description": "A simple smiley face SVG NFT", "image": "data:image/svg+xml;utf8,',
                 svg,
                 '"}'
             )
