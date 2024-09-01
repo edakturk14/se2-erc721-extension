@@ -3,7 +3,7 @@ export const deploymentsLogic = `
 
     vm.startBroadcast(deployerPrivateKey);
 
-    NFTContarct nftContract = new NFTContract();
+    NFTContract nftContract = new NFTContract();
     console.logString(string.concat("NFTContract deployed at: ", vm.toString(address(nftContract))));
 
     vm.stopBroadcast();
