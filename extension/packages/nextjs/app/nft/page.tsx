@@ -4,14 +4,10 @@ import { useEffect, useState } from "react";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { Address, AddressInput } from "~~/components/scaffold-eth";
-import {
-  useDeployedContractInfo,
-  useScaffoldReadContract,
-  useScaffoldWriteContract,
-  useTransactor,
-} from "~~/hooks/scaffold-eth";
+import { useDeployedContractInfo, useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { getParsedError } from "~~/utils/scaffold-eth";
 
-const Home: NextPage = () => {
+const NFT: NextPage = () => {
   const { data: nftContractData } = useDeployedContractInfo("NFTContract");
   const { address: connectedAddress } = useAccount();
   const [recipientAddress, setRecipientAddress] = useState<string>("");
@@ -55,11 +51,7 @@ const Home: NextPage = () => {
       setTransactionHash(result); // Only set transaction hash if successful
       console.log("Transaction successful:", result);
     } catch (e: unknown) {
-      if (e instanceof Error) {
-        setErrorMessage(e.message);
-      } else {
-        setErrorMessage("An unexpected error occurred.");
-      }
+      setErrorMessage(getParsedError(e));
       console.error("Error minting NFT:", e);
     }
   };
@@ -118,7 +110,7 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+export default NFT;
 
 const NFTDisplay: React.FC<{ tokenId: string }> = ({ tokenId }) => {
   const { data: tokenURI } = useScaffoldReadContract({
